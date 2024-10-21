@@ -1,0 +1,60 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// Define pins and parameters
+#define SOUND_SENSOR_PIN A0
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define OLED_I2C_ADDRESS 0x3C  // Using I2C address 0x3C
+
+// Initialize OLED display
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+void setup() {
+  // Start Serial Monitor for debugging
+  Serial.begin(9600);
+  
+  // Initialize the display
+  if(!display.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS)) {
+    Serial.println(F("OLED allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  
+  // Clear display
+  display.clearDisplay();
+  display.display();
+  
+  // Sensor setup
+  pinMode(SOUND_SENSOR_PIN, INPUT);
+}
+
+void loop() {
+  int sensorValue = analogRead(SOUND_SENSOR_PIN);  // Read sound sensor value
+  float dB = map(sensorValue, 0, 1023, 30, 120);   // Map analog value to decibel range (approximate)
+
+  // Print to Serial Monitor (optional)
+  Serial.print("Analog Value: ");
+  Serial.print(sensorValue);
+  Serial.print(" | Decibel: ");
+  Serial.println(dB);
+  
+  // Display value on OLED with larger text and spacing
+  display.clearDisplay();
+  display.setTextSize(2);                          // Set text size to 2 (larger)
+  display.setTextColor(SSD1306_WHITE);
+
+  // Display text with spacing from the top
+  display.setCursor(0, 10);                        // Start cursor a bit lower from the top
+  display.print("SoundLevel:");
+  
+  // Space between the "Sound Level" and dB value
+  display.setCursor(0, 35);                        // Add space before the dB value
+  display.print(dB);
+  display.print(" dB");
+  
+  display.display();                               // Display everything on the screen
+  
+  delay(500);
+}
